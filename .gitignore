@@ -1,0 +1,4 @@
+.idea
+*.log
+dist
+honeywell_thermostat.egg-info
