@@ -1,8 +1,7 @@
 # honewell_thermostat
 This library builds on the initial work by Brad Goodman.
 It provides a clean python-ish API to the Honeywell Thermostat portal for controlling and monitoring their thermostats.
-
-## HonewellThermostat class consists of several exposted methods
+The HonewellThermostat class consists of several exposted methods as follows below
 
 ### __init__(username, password, device_id)
 ##### username
@@ -13,9 +12,9 @@ honeywell password
 the device id of the honeywell thermostat
 To obtain the device_id, visit the URL that you would normally use to access the thermostat.  It looks simething like:
 https://mytotalconnectcomfort.com/portal/Device/Control/123456?page=1
-the device id for this thermostat is "123456"
+the device id for this thermostat would be "123456"
 
-### get_status
+### get_status()
 returns a json structure containing status of the thermostat
 
 ### set_cool(value, hold_time)
