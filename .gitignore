@@ -2,3 +2,4 @@
 *.log
 dist
 honeywell_thermostat.egg-info
+thermostats.config

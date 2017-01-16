@@ -11,7 +11,7 @@ import httplib
 import logging.config
 import inspect
 import os
-
+import ConfigParser
 
 def get_logger_name():
     stack = inspect.stack()
@@ -223,22 +223,26 @@ class Honeywell:
         return j
 
     def set_cool(self, value, hold_time):
+        hold = 1
+        # statusCool and statusHeat 1 for hold, 0 for regular
         hold_time = Honeywell._hold_time(hold_time)
         self._send_payload({
             "CoolNextPeriod": hold_time,
             "CoolSetpoint": value,
             "HeatNextPeriod": hold_time,
-            "StatusCool": 1,
-            "StatusHeat": 1})
+            "StatusCool": hold,
+            "StatusHeat": hold})
 
     def set_heat(self, value, hold_time):
+        # statusCool and statusHeat 1 for hold, 0 for regular
+        hold = 1
         hold_time = Honeywell._hold_time(hold_time)
         self._send_payload({
             "CoolNextPeriod": hold_time,
             "HeatSetpoint": value,
             "HeatNextPeriod": hold_time,
-            "StatusCool": 1,
-            "StatusHeat": 1})
+            "StatusCool": hold,
+            "StatusHeat": hold})
 
     def cancel_hold(self):
         self._send_payload({})
@@ -298,3 +302,21 @@ class Honeywell:
         logger = logging.getLogger(get_logger_name())
         logger.debug("turning system to auto")
         self._set_system(SystemState.auto)
+
+
+def main():
+    logging.config.fileConfig("logging.conf")
+    logger = logging.getLogger(get_logger_name())
+    config = ConfigParser.ConfigParser()
+    config.read("thermostats.config")
+    username = config.get("honeywell", "username")
+    password = config.get("honeywell", "password")
+    thermostats = eval(config.get("system", "thermostats"))
+    honeywell = Honeywell(username, password, thermostats["living room"])
+    honeywell.system_off()
+    #honeywell.cooler(5,30)
+    honeywell.warmer(5,30)
+    #honeywell.cooler(5, 30)
+
+if __name__ == '__main__':
+    main()
