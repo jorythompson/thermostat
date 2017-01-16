@@ -13,6 +13,7 @@ import inspect
 import os
 import ConfigParser
 
+
 def get_logger_name():
     stack = inspect.stack()
     file_name = os.path.basename(__file__).replace(".py", "")
@@ -314,9 +315,10 @@ def main():
     thermostats = eval(config.get("system", "thermostats"))
     honeywell = Honeywell(username, password, thermostats["living room"])
     honeywell.system_off()
-    #honeywell.cooler(5,30)
-    honeywell.warmer(5,30)
-    #honeywell.cooler(5, 30)
+    # honeywell.cooler(5, 30)
+    honeywell.warmer(5, 30)
+    # honeywell.cooler(5, 30)
+    logger.info("Done!")
 
 if __name__ == '__main__':
     main()
