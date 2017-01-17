@@ -224,12 +224,12 @@ class Honeywell:
         return j
 
     def set_cool(self, value, hold_time):
+        # statusCool and statusHeat 1 for hold, 0 for regular
         hold = 1
         status = self.get_status()
         system_status = status['latestData']['uiData']["SystemSwitchPosition"]
         if system_status is not SystemState.cool:
             self.system_cool()
-        # statusCool and statusHeat 1 for hold, 0 for regular
         hold_time = Honeywell._hold_time(hold_time)
         self._send_payload({
             "CoolNextPeriod": hold_time,
