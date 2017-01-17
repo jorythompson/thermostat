@@ -12,6 +12,7 @@ import logging.config
 import inspect
 import os
 import ConfigParser
+import pprint
 
 
 def get_logger_name():
@@ -223,12 +224,13 @@ class Honeywell:
         logger.debug("Status Fan:%s", SystemState.on_off(j['latestData']['fanData']["fanMode"]))
         return j
 
-    def set_cool(self, value, hold_time):
+    def set_cool(self, value, hold_time, switch_position=None):
         # statusCool and statusHeat 1 for hold, 0 for regular
         hold = 1
-        status = self.get_status()
-        system_status = status['latestData']['uiData']["SystemSwitchPosition"]
-        if system_status is not SystemState.cool:
+        if switch_position is None:
+            status = self.get_status()
+            switch_position = status['latestData']['uiData']["SystemSwitchPosition"]
+        if switch_position is not SystemState.cool:
             self.system_cool()
         hold_time = Honeywell._hold_time(hold_time)
         self._send_payload({
@@ -238,12 +240,13 @@ class Honeywell:
             "StatusCool": hold,
             "StatusHeat": hold})
 
-    def set_heat(self, value, hold_time):
+    def set_heat(self, value, hold_time, switch_position=None):
         # statusCool and statusHeat 1 for hold, 0 for regular
         hold = 1
-        status = self.get_status()
-        system_status = status['latestData']['uiData']["SystemSwitchPosition"]
-        if system_status is not SystemState.heat:
+        if switch_position is None:
+            status = self.get_status()
+            switch_position = status['latestData']['uiData']["SystemSwitchPosition"]
+        if switch_position is not SystemState.heat:
             self.system_heat()
         hold_time = Honeywell._hold_time(hold_time)
         self._send_payload({
@@ -259,32 +262,32 @@ class Honeywell:
     def cooler(self, value=1, hold_time=15):
         logger = logging.getLogger(get_logger_name())
         status = self.get_status()
-        system_status = status['latestData']['uiData']["SystemSwitchPosition"]
+        switch_position = status['latestData']['uiData']["SystemSwitchPosition"]
         current_temp = status['latestData']['uiData']["DispTemperature"]
         target_temp = current_temp - value
         logger.debug("changing the temperature from %3.2f to %3.2f", current_temp, target_temp)
-        if system_status != SystemState.cool and system_status != SystemState.heat:
+        if switch_position != SystemState.cool and switch_position != SystemState.heat:
             self.system_cool()
-            system_status = SystemState.cool
-        if system_status == SystemState.cool:
-            self.set_cool(target_temp, hold_time)
+            switch_position = SystemState.cool
+        if switch_position == SystemState.cool:
+            self.set_cool(target_temp, hold_time, switch_position)
         else:
-            self.set_heat(target_temp, hold_time)
+            self.set_heat(target_temp, hold_time, switch_position)
 
     def warmer(self, value=1, hold_time=15):
         logger = logging.getLogger(get_logger_name())
         status = self.get_status()
-        system_status = status['latestData']['uiData']["SystemSwitchPosition"]
+        switch_position = status['latestData']['uiData']["SystemSwitchPosition"]
         current_temp = status['latestData']['uiData']["DispTemperature"]
         target_temp = current_temp + value
         logger.debug("changing the temperature from %3.2f to %3.2f", current_temp, target_temp)
-        if system_status != SystemState.cool and system_status != SystemState.heat:
+        if switch_position != SystemState.cool and switch_position != SystemState.heat:
             self.system_heat()
-            system_status = SystemState.heat
-        if system_status == SystemState.cool:
-            self.set_cool(target_temp, hold_time)
+            switch_position = SystemState.heat
+        if switch_position == SystemState.cool:
+            self.set_cool(target_temp, hold_time, switch_position)
         else:
-            self.set_heat(target_temp, hold_time)
+            self.set_heat(target_temp, hold_time, switch_position)
 
     def system_fan_on(self):
         self._send_payload({"FanMode": 1})
@@ -308,16 +311,20 @@ class Honeywell:
         self._set_system(SystemState.cool)
 
     def system_auto(self):
+        hold = 1
         logger = logging.getLogger(get_logger_name())
         logger.debug("turning system to auto")
-        self._set_system(SystemState.auto)
+        self._send_payload({
+            "StatusCool": hold,
+            "StatusHeat": hold,
+            "SystemSwitch": SystemState.auto})
 
 
 def main():
     logging.config.fileConfig("logging.conf")
     logger = logging.getLogger(get_logger_name())
     config = ConfigParser.ConfigParser()
-    config.read("thermostats.config")
+    config.read("thermostats.cfg")
     username = config.get("honeywell", "username")
     password = config.get("honeywell", "password")
     thermostats = eval(config.get("system", "thermostats"))
@@ -327,7 +334,10 @@ def main():
     # honeywell.warmer(5, 30)
     # honeywell.cooler(5, 30)
     # honeywell.set_cool(85, 30)
-    honeywell.set_heat(75, 30)
+    # honeywell.set_heat(80, 30)
+    # honeywell.system_auto()
+    pp = pprint.PrettyPrinter(indent=2)
+    pp.pprint(honeywell.get_status())
     logger.info("Done!")
 
 if __name__ == '__main__':
