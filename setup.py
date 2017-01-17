@@ -10,7 +10,7 @@ pip install honeywell_thermostat --upgrade
 setup(
     name='honeywell_thermostat',
     packages=['honeywell_thermostat'],
-    version='1.1.13',
+    version='1.2',
     description='Python API for Honeywell thermostats',
     author='Jordan Thompson',
     author_email='Jordan@ThompCo.com',
